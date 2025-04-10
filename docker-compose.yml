@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fahrzua_app
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount local code into container for development
+      - .:/app
+      # Use a named volume for node_modules to avoid conflicts with host
+      - node_modules:/app/node_modules
+      # Mount local media dev folder (simulates NAS)
+      - ./media_dev:/media
+    env_file:
+      - .env
+    # Wait for the database to be healthy before starting the app
+    depends_on:
+      db:
+        condition: service_healthy
+    # Command to run the Remix dev server
+    # The --host 0.0.0.0 is important to make it accessible from outside the container
+    command: npm run dev
+    networks:
+      - fahrzua_net
+
+  db:
+    image: postgres:16-alpine # Use alpine for smaller size
+    container_name: fahrzua_db
+    env_file:
+      - .env
+    volumes:
+      # Persist database data using a named volume
+      - postgres_data:/var/lib/postgresql/data
+    # No external ports needed, app connects via internal network
+    # ports:
+    #  - "5432:5432" # Uncomment if you need direct access from host
+    healthcheck:
+      # Check if PostgreSQL server is ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - fahrzua_net
+
+volumes:
+  postgres_data: # Named volume for database persistence
+  node_modules: # Named volume for node_modules isolation
+
+networks:
+  fahrzua_net: # Define a custom network (good practice)
+    driver: bridge
