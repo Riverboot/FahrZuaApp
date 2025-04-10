@@ -1,0 +1,25 @@
+# Ignore node_modules directory
+node_modules
+
+# Ignore build artifacts
+build
+.cache
+dist
+
+# Ignore Docker related files if necessary (though usually fine)
+# Dockerfile
+# docker-compose.yml
+
+# Ignore Git directory
+.git
+
+# Ignore environment files (should be handled by env_file in compose)
+.env*
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE/editor directories
+.vscode
+.idea
